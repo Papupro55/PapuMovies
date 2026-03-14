@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Películas Populares</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link  href="../static/css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="fondo"></div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+        <div class="container-fluid">
+          <div class="mx-auto d-flex align-items-center gap-2">
+            <i class="bi bi-rocket-takeoff-fill text-light display-6"></i>
+            <a class="navbar-brand text-light fw-bold fs-3" href="#">PapuMovies</a>
+        </div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
+
+    <h1 class="text-center mt-4 text-light">Look up for your favorite Papumovie!</h1>
+    
+
+    <div class="container py-4">
+        <!-- Barra de búsqueda y filtros -->
+        <form method="get" action="/" class="mb-4 p-3 bg-dark rounded">
+            <input type="hidden" name="pagina" value="1"> <!-- Siempre empieza en página 1 -->
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="busqueda" class="form-control" 
+                           placeholder="Search..." value="{{ filtros_actuales.busqueda or '' }}">
+                </div>
+                <div class="col-md-2">
+                    <select name="genero" class="form-select">
+                        <option value="">All genres</option>
+                        {% for id, nombre in generos_disponibles.items() %}
+                        <option value="{{ id }}" {% if filtros_actuales.genero == id|string %}selected{% endif %}>
+                            {{ nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="año" class="form-control" 
+                           placeholder="Year" min="1900" max="2030" value="{{ filtros_actuales.año or '' }}">
+                </div>
+                <div class="col-md-2">
+                    <select name="clasificacion" class="form-select">
+                        <option value="">All</option>
+                        <option value="G" {% if filtros_actuales.clasificacion == 'G' %}selected{% endif %}>G</option>
+                        <option value="PG" {% if filtros_actuales.clasificacion == 'PG' %}selected{% endif %}>PG</option>
+                        <option value="PG-13" {% if filtros_actuales.clasificacion == 'PG-13' %}selected{% endif %}>PG-13</option>
+                        <option value="R" {% if filtros_actuales.clasificacion == 'R' %}selected{% endif %}>R</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" id="papu_id"class="btn btn-danger w-100">Filter</button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Lista de películas -->
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            {% for pelicula in peliculas %}
+            <div class="col">
+                <div class="card h-100 border-danger">
+                    <img src="{% if pelicula.poster_path %}https://image.tmdb.org/t/p/w500{{ pelicula.poster_path }}{% else %}Sorry papu no image found for this movie{% endif %}" 
+                         class="card-img-top" alt="{{ pelicula.title }}"
+                         style="height: 300px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ pelicula.title }}</h5>
+                        <p class="text-muted">
+                            {{ pelicula.release_date }} | 
+                            <span class="badge bg-danger">⭐ {{ pelicula.vote_average }}</span>
+                        </p>
+                        <p class="card-text small">{{ pelicula.overview|truncate(100) }}</p>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for genero in pelicula.genre_ids %}
+                            <span class="badge bg-secondary">{{ genero }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="card-footer bg-dark">
+                        <a href="/pelicula/{{ pelicula.id }}" class="btn btn-sm btn-danger w-100">Details</a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12">
+                <div class="alert alert-danger">No se encontraron películas</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Paginación -->
+        {% if total_paginas > 1 %}
+        <nav aria-label="Paginación">
+            <ul class="pagination justify-content-center">
+                {% for pagina in range(1, total_paginas + 1) %}
+                    {% if loop.index <= 5 or loop.index >= total_paginas - 4 
+                       or (loop.index >= pagina_actual - 2 and loop.index <= pagina_actual + 2) %}
+                        
+                        <li class="page-item {% if pagina == pagina_actual %}active{% endif %}">
+                            <a class="page-link {% if pagina == pagina_actual %}bg-danger border-danger{% else %}bg-dark text-danger border-danger{% endif %}" 
+                               href="{{ url_for('index', 
+                               pagina=pagina, 
+                               busqueda=filtros_actuales.busqueda,
+                               genero=filtros_actuales.genero,
+                               año=filtros_actuales.año,
+                               clasificacion=filtros_actuales.clasificacion) }}">
+                                {{ pagina }}
+                            </a>
+                        </li>
+                    {% elif loop.index == 6 and pagina_actual > 5 %}
+                        <li class="page-item disabled">
+                            <span class="page-link bg-dark border-danger">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+</body>
+</html>
