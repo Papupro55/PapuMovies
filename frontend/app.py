@@ -5,9 +5,9 @@ import os
 app = Flask(__name__)
 
 # Service URLs
-MOVIE_SERVICE_URL = 'http://localhost:5001'
-RATING_SERVICE_URL = 'http://localhost:5002'
-TRAILER_SERVICE_URL = 'http://localhost:5003'
+MOVIE_SERVICE_URL = 'https://movie-service-pcuu.onrender.com'
+RATING_SERVICE_URL = 'https://rating-service-sk4h.onrender.com'
+TRAILER_SERVICE_URL = 'https://trailer-service.onrender.com'
 
 
 def get_genres():
