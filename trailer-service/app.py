@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import requests
 from urllib.parse import quote
+import os
 
 app = Flask(__name__)
 
@@ -37,5 +38,6 @@ def get_trailer():
         return jsonify({'error': str(e)}), 500
 
 
-if __name__ == '__main__':
-    app.run(debug=True, port=5003)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5003))
+    app.run(host="0.0.0.0", port=port)
